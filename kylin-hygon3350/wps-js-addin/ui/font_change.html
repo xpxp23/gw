@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <title>指定字体更改与数字/西文字体设置</title>
+    <script type="text/javascript" src="../js/wps_enum.js"></script>
+    <script type="text/javascript" src="../js/config.js"></script>
+    <script type="text/javascript" src="../js/fonts.js"></script>
+    <style>
+        body {
+            font-family: "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+            font-size: 13px;
+            margin: 0;
+            padding: 16px;
+            background: #f6f8fa;
+            color: #1f2328;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+        }
+        .row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 8px 0;
+            gap: 8px;
+        }
+        input[type="text"], select {
+            flex: 1;
+            padding: 5px 8px;
+            border: 1px solid #d0d7de;
+            border-radius: 4px;
+        }
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 14px;
+        }
+        .btn {
+            padding: 6px 16px;
+            border-radius: 4px;
+            border: 1px solid #d0d7de;
+            background: #fff;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background: #b91c1c;
+            color: #fff;
+            border-color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <datalist id="kylinFonts">
+        <option value="方正小标宋简体"></option>
+        <option value="方正小标宋_GBK"></option>
+        <option value="仿宋"></option>
+        <option value="仿宋_GB2312"></option>
+        <option value="方正仿宋_GBK"></option>
+        <option value="楷体"></option>
+        <option value="楷体_GB2312"></option>
+        <option value="方正楷体_GBK"></option>
+        <option value="黑体"></option>
+        <option value="方正黑体_GBK"></option>
+        <option value="宋体"></option>
+        <option value="Noto Serif CJK SC"></option>
+        <option value="Noto Sans CJK SC"></option>
+        <option value="Times New Roman"></option>
+        <option value="Arial"></option>
+    </datalist>
+
+    <div class="card">
+        <div class="row">
+            <label><input type="checkbox" id="chkReplaceFont" checked /> 全文替换指定字体：</label>
+        </div>
+        <div class="row">
+            <span style="width:90px;">原字体名称:</span>
+            <input type="text" id="oldFont" list="kylinFonts" value="仿宋_GB2312" placeholder="输入或选择被替换字体" />
+        </div>
+        <div class="row">
+            <span style="width:90px;">新字体名称:</span>
+            <input type="text" id="newFont" list="kylinFonts" value="仿宋" placeholder="输入或选择目标字体" />
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="row">
+            <label style="width:150px;"><input type="checkbox" id="chkNumFont" /> 更改全文数字字体:</label>
+            <input type="text" id="numFont" list="kylinFonts" value="Times New Roman" />
+        </div>
+        <div class="row">
+            <label style="width:150px;"><input type="checkbox" id="chkLetterFont" /> 更改全文字母字体:</label>
+            <input type="text" id="letterFont" list="kylinFonts" value="Times New Roman" />
+        </div>
+    </div>
+
+    <div class="actions">
+        <button class="btn btn-primary" onclick="executeFontChange()">立即执行</button>
+        <button class="btn" onclick="window.close()">关闭</button>
+    </div>
+
+    <script>
+        window.onload = function () {
+            var cfg = GwConfig.load();
+            if (cfg.numberFont) document.getElementById("numFont").value = cfg.numberFont;
+            if (cfg.letterFont) document.getElementById("letterFont").value = cfg.letterFont;
+        };
+
+        function executeFontChange() {
+            var cfg = GwConfig.load();
+            if (document.getElementById("chkReplaceFont").checked) {
+                var f1 = document.getElementById("oldFont").value.trim();
+                var f2 = document.getElementById("newFont").value.trim();
+                if (!f1 || !f2) {
+                    alert("请输入被替换字体和目标字体名称！");
+                    return;
+                }
+                GwFonts.switchFont(f1, f2);
+            }
+            if (document.getElementById("chkNumFont").checked) {
+                var nf = document.getElementById("numFont").value.trim();
+                if (nf) {
+                    GwFonts.changeNumOrLetterFont("^#", nf);
+                    cfg.numberFont = nf;
+                }
+            }
+            if (document.getElementById("chkLetterFont").checked) {
+                var lf = document.getElementById("letterFont").value.trim();
+                if (lf) {
+                    GwFonts.changeNumOrLetterFont("^$", lf);
+                    cfg.letterFont = lf;
+                }
+            }
+            GwConfig.save(cfg);
+            window.close();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <title>公文页面设置 (GB/T 9704—2012)</title>
+    <script type="text/javascript" src="../js/wps_enum.js"></script>
+    <script type="text/javascript" src="../js/config.js"></script>
+    <script type="text/javascript" src="../js/layout.js"></script>
+    <style>
+        body {
+            font-family: "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+            font-size: 13px;
+            margin: 0;
+            padding: 16px;
+            background: #f6f8fa;
+            color: #1f2328;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+        }
+        .card-title {
+            font-weight: 600;
+            color: #b91c1c;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 4px;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px 16px;
+        }
+        .field {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .field input[type="number"] {
+            width: 72px;
+            padding: 4px 6px;
+            border: 1px solid #d0d7de;
+            border-radius: 4px;
+            text-align: right;
+        }
+        .chk-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 6px 0;
+        }
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 14px;
+        }
+        .btn {
+            padding: 6px 14px;
+            border-radius: 4px;
+            border: 1px solid #d0d7de;
+            background: #fff;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .btn-primary {
+            background: #b91c1c;
+            color: #fff;
+            border-color: #991b1b;
+        }
+        .btn-primary:hover { background: #991b1b; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="card-title">页边距与页脚设置（单位：毫米 mm）</div>
+        <div class="grid-2">
+            <div class="field"><label>上边距 (天头):</label><input type="number" id="nudTop" step="0.5" value="37" /></div>
+            <div class="field"><label>下边距 (地脚):</label><input type="number" id="nudBottom" step="0.5" value="35" /></div>
+            <div class="field"><label>左边距 (订口):</label><input type="number" id="nudLeft" step="0.5" value="28" /></div>
+            <div class="field"><label>右边距 (切口):</label><input type="number" id="nudRight" step="0.5" value="26" /></div>
+            <div class="field"><label>页脚距底边:</label><input type="number" id="nudFoot" step="0.1" value="24.7" /></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">公文版式网格与行间距（GB/T 9704 标准：22行 × 28字）</div>
+        <div class="chk-row">
+            <input type="checkbox" id="chkGW" checked onchange="toggleGridInputs()" />
+            <label for="chkGW">启用标准公文网格版式（自动设为三号字、指定行/字网格）</label>
+        </div>
+        <div class="grid-2" style="margin-top:8px;">
+            <div class="field"><label>每页行数:</label><input type="number" id="nudLine" step="1" value="22" /></div>
+            <div class="field"><label>每行字数:</label><input type="number" id="nudLetters" step="1" value="28" /></div>
+        </div>
+        <div class="chk-row" style="margin-top:10px;">
+            <input type="checkbox" id="chkLineSpacing" onchange="toggleSpacingInput()" />
+            <label for="chkLineSpacing">强制指定固定行距（磅）:</label>
+            <input type="number" id="nudLineSpacing" step="0.5" value="28" style="width:68px;" />
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">附加文档选项</div>
+        <div class="chk-row">
+            <input type="checkbox" id="chkIncludeFonts" />
+            <label for="chkIncludeFonts">将字体嵌入文件（跨终端分发保持版式一致）</label>
+        </div>
+        <div class="chk-row">
+            <input type="checkbox" id="chkShowHideFont" />
+            <label for="chkShowHideFont">显示隐藏文字（打印时默认不打印隐藏文字）</label>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button class="btn" onclick="resetDefaults()">恢复国标默认</button>
+        <div style="display:flex; gap:8px;">
+            <button class="btn" onclick="applyOnly()">应用</button>
+            <button class="btn btn-primary" onclick="applyAndClose()">确定</button>
+            <button class="btn" onclick="window.close()">取消</button>
+        </div>
+    </div>
+
+    <script>
+        function loadForm() {
+            var cfg = GwConfig.load();
+            document.getElementById("nudTop").value = cfg.topMarginMm;
+            document.getElementById("nudBottom").value = cfg.bottomMarginMm;
+            document.getElementById("nudLeft").value = cfg.leftMarginMm;
+            document.getElementById("nudRight").value = cfg.rightMarginMm;
+            document.getElementById("nudFoot").value = cfg.footerDistanceMm;
+            document.getElementById("nudLine").value = cfg.linesPerPage;
+            document.getElementById("nudLetters").value = cfg.charsPerLine;
+            document.getElementById("chkGW").checked = !!cfg.useGwGrid;
+            document.getElementById("chkLineSpacing").checked = !!cfg.useExactLineSpacing;
+            document.getElementById("nudLineSpacing").value = cfg.lineSpacingPt;
+            document.getElementById("chkIncludeFonts").checked = !!cfg.embedFonts;
+            document.getElementById("chkShowHideFont").checked = !!cfg.showHiddenText;
+            toggleGridInputs();
+            toggleSpacingInput();
+        }
+
+        function toggleGridInputs() {
+            var en = document.getElementById("chkGW").checked;
+            document.getElementById("nudLine").disabled = !en;
+            document.getElementById("nudLetters").disabled = !en;
+        }
+
+        function toggleSpacingInput() {
+            document.getElementById("nudLineSpacing").disabled = !document.getElementById("chkLineSpacing").checked;
+        }
+
+        function collectForm() {
+            var cfg = GwConfig.load();
+            cfg.topMarginMm = parseFloat(document.getElementById("nudTop").value) || 37;
+            cfg.bottomMarginMm = parseFloat(document.getElementById("nudBottom").value) || 35;
+            cfg.leftMarginMm = parseFloat(document.getElementById("nudLeft").value) || 28;
+            cfg.rightMarginMm = parseFloat(document.getElementById("nudRight").value) || 26;
+            cfg.footerDistanceMm = parseFloat(document.getElementById("nudFoot").value) || 24.7;
+            cfg.linesPerPage = parseInt(document.getElementById("nudLine").value, 10) || 22;
+            cfg.charsPerLine = parseInt(document.getElementById("nudLetters").value, 10) || 28;
+            cfg.useGwGrid = document.getElementById("chkGW").checked;
+            cfg.useExactLineSpacing = document.getElementById("chkLineSpacing").checked;
+            cfg.lineSpacingPt = parseFloat(document.getElementById("nudLineSpacing").value) || 28;
+            cfg.embedFonts = document.getElementById("chkIncludeFonts").checked;
+            cfg.showHiddenText = document.getElementById("chkShowHideFont").checked;
+            GwConfig.save(cfg);
+            return cfg;
+        }
+
+        function applyOnly() {
+            var cfg = collectForm();
+            GwLayout.applyGwPageSetup(cfg);
+        }
+
+        function applyAndClose() {
+            var cfg = collectForm();
+            if (GwLayout.applyGwPageSetup(cfg)) {
+                window.close();
+            }
+        }
+
+        function resetDefaults() {
+            if (!confirm("确定要恢复《党政机关公文格式》(GB/T 9704—2012) 默认页面设置吗？")) return;
+            GwConfig.reset();
+            loadForm();
+        }
+
+        window.onload = loadForm;
+    </script>
+</body>
+</html>

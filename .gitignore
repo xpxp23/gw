@@ -1,0 +1,17 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# C# / Visual Studio
+bin/
+obj/
+.vs/
+*.user
+*.suo
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+[Dd]esktop.ini

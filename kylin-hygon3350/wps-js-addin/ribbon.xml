@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<customUI onLoad="OnRibbonLoad" xmlns="http://schemas.microsoft.com/office/2006/01/customui">
+    <ribbon startFromScratch="false">
+        <tabs>
+            <tab id="tabXKl" label="公文(麒麟版)" keytip="XKL">
+                <!-- 1. 版面组 -->
+                <group id="group1" label="版面" keytip="B1">
+                    <button id="btnPaper" onAction="OnAction" getImage="GetImage" screentip="页面设置" supertip="打开《党政机关公文格式》(GB/T 9704) 页面设置面板（默认上37mm、下35mm、左28mm、右26mm，22行×28字）" label="页面设置" size="large" />
+                    <button id="btnInsert2" onAction="OnAction" getImage="GetImage" screentip="中文缩进" supertip="首行缩进2字符" label="中文缩进" />
+                    <button id="btnLeft" onAction="OnAction" getImage="GetImage" screentip="段落顶格" supertip="取消首行缩进和左缩进至文字顶格" label="段落顶格" />
+                    <button id="btnHeadDelete" onAction="OnAction" getImage="GetImage" screentip="删除页眉" supertip="清空当前页眉内容并清除页眉横线" label="删除页眉" />
+                    <button id="btnHeadNoLine" onAction="OnAction" getImage="GetImage" screentip="删除页眉横线" supertip="仅删除页眉底部横线，保留页眉文字" label="删页眉线" />
+                    <menu id="glyFormat" getImage="GetImage" screentip="文字排版工具" supertip="常用的全文/选区文字替换和格式清理工具" label="排版工具" itemSize="normal" size="large">
+                        <button id="btnFormatAuto2026" onAction="OnAction" label="★ 一键公文自动排版 (2026标准版)" screentip="自动设置A4版心、识别主标题/多级标题/落款/附件/页码" />
+                        <menuSeparator id="sepFmt0" />
+                        <button id="btnFormatFullLine" onAction="OnAction" label="断行重排 (恢复异常换行)" screentip="合并未以句号/冒号/感叹号/问号结尾的断行" />
+                        <button id="btnFormatR2N" onAction="OnAction" label="换行符转回车 (软回车转硬回车)" screentip="转换文档中所有的手动换行符(^l)为段落标记(^p)" />
+                        <button id="btnFormatDelSpace" onAction="OnAction" label="删除所有空白 (含全角空格)" screentip="删除半角空格、全角空格及制表符" />
+                        <button id="btnFormatDelSelectSpace" onAction="OnAction" label="删除半角空格 (选定范围)" screentip="仅删除半角空格" />
+                        <button id="btnFormatDelEmptyLine" onAction="OnAction" label="删除所有空行 (全文)" screentip="删除全文所有空白段落" />
+                        <button id="btnFormatDelSelectEmptyLine" onAction="OnAction" label="删除空段落 (选定范围)" screentip="仅删除选定范围内的空白段落" />
+                        <button id="btnFormatDelGraphic" onAction="OnAction" label="删除图片图表" screentip="删除文档中所有嵌入图片、图表" />
+                        <button id="btnFormatRemoveURL" onAction="OnAction" label="移除超链接" screentip="将超链接域转换为普通文本" />
+                        <button id="btnFormatAddSpace" onAction="OnAction" label="中英文之间添加空格" screentip="在中文字符与英文字母之间自动添加半角空格" />
+                        <button id="btnFormatE2C" onAction="OnAction" label="标点符号 (英转中)" screentip="转换为中文全角格式的标点符号" />
+                        <button id="btnFormatC2E" onAction="OnAction" label="标点符号 (中转英)" screentip="转换为英文半角格式的标点符号" />
+                        <button id="btnFormatFrame2txt" onAction="OnAction" label="文本框转文字" screentip="提取选中文本框内的文字并移除文本框" />
+                        <button id="btnFormatParaPage" onAction="OnAction" label="所选段落段前分页" screentip="设置所选段落为段前分页" />
+                    </menu>
+                </group>
+
+                <!-- 2. 公文标题组 -->
+                <group id="group2" label="公文标题">
+                    <button id="btnTitleHei" onAction="OnAction" getImage="GetImage" screentip="公文标题" supertip="设置公文大标题格式（二号方正小标宋简体，居中）" label="公文标题" size="large" />
+                    <menu id="mnuTitleFontQuick" getImage="GetImage" label="二号标题字体" screentip="按指定中文字体设为二号字居中标题" size="normal">
+                        <button id="btnTitleFont_FZXBS" onAction="OnAction" label="二号 方正小标宋简体 (居中)" />
+                        <button id="btnTitleFont_FZXBSGBK" onAction="OnAction" label="二号 方正小标宋_GBK (居中)" />
+                        <button id="btnTitleFont_Hei" onAction="OnAction" label="二号 黑体 (居中)" />
+                        <button id="btnTitleFont_Song" onAction="OnAction" label="二号 宋体 (居中)" />
+                        <button id="btnTitleFont_Kai" onAction="OnAction" label="二号 楷体 (居中)" />
+                        <button id="btnTitleFont_FangSong" onAction="OnAction" label="二号 仿宋 (居中)" />
+                    </menu>
+                </group>
+
+                <!-- 3. 文字格式组 -->
+                <group id="group3" label="文字格式">
+                    <button id="btnNormal" onAction="OnAction" getImage="GetImage" screentip="公文正文" supertip="设置所选文字为正文格式（三号仿宋，取消自动编号与大纲级别）" label="正文格式" size="large" />
+                    <separator id="separator2" />
+                    <menu id="mnuTitle1" getImage="GetImage" label="标题一、" screentip="设为一级标题（三号黑体，一、~ 二十、）">
+                        <button id="btnT1_1" onAction="OnTitleAction" tag="1|1" label="标题一、" />
+                        <button id="btnT1_2" onAction="OnTitleAction" tag="1|2" label="标题二、" />
+                        <button id="btnT1_3" onAction="OnTitleAction" tag="1|3" label="标题三、" />
+                        <button id="btnT1_4" onAction="OnTitleAction" tag="1|4" label="标题四、" />
+                        <button id="btnT1_5" onAction="OnTitleAction" tag="1|5" label="标题五、" />
+                        <button id="btnT1_6" onAction="OnTitleAction" tag="1|6" label="标题六、" />
+                        <button id="btnT1_7" onAction="OnTitleAction" tag="1|7" label="标题七、" />
+                        <button id="btnT1_8" onAction="OnTitleAction" tag="1|8" label="标题八、" />
+                        <button id="btnT1_9" onAction="OnTitleAction" tag="1|9" label="标题九、" />
+                        <button id="btnT1_10" onAction="OnTitleAction" tag="1|10" label="标题十、" />
+                        <button id="btnT1_11" onAction="OnTitleAction" tag="1|11" label="标题十一、" />
+                        <button id="btnT1_12" onAction="OnTitleAction" tag="1|12" label="标题十二、" />
+                    </menu>
+                    <menu id="mnuTitle2" getImage="GetImage" label="标题(一)" screentip="设为二级标题（三号楷体，（一）~（十二））">
+                        <button id="btnT2_1" onAction="OnTitleAction" tag="2|1" label="标题（一）" />
+                        <button id="btnT2_2" onAction="OnTitleAction" tag="2|2" label="标题（二）" />
+                        <button id="btnT2_3" onAction="OnTitleAction" tag="2|3" label="标题（三）" />
+                        <button id="btnT2_4" onAction="OnTitleAction" tag="2|4" label="标题（四）" />
+                        <button id="btnT2_5" onAction="OnTitleAction" tag="2|5" label="标题（五）" />
+                        <button id="btnT2_6" onAction="OnTitleAction" tag="2|6" label="标题（六）" />
+                        <button id="btnT2_7" onAction="OnTitleAction" tag="2|7" label="标题（七）" />
+                        <button id="btnT2_8" onAction="OnTitleAction" tag="2|8" label="标题（八）" />
+                        <button id="btnT2_9" onAction="OnTitleAction" tag="2|9" label="标题（九）" />
+                        <button id="btnT2_10" onAction="OnTitleAction" tag="2|10" label="标题（十）" />
+                        <button id="btnT2_11" onAction="OnTitleAction" tag="2|11" label="标题（十一）" />
+                        <button id="btnT2_12" onAction="OnTitleAction" tag="2|12" label="标题（十二）" />
+                    </menu>
+                    <menu id="mnuTitle3" getImage="GetImage" label="标题1." screentip="设为三级标题（三号仿宋，1．~ 12．）">
+                        <button id="btnT3_1" onAction="OnTitleAction" tag="3|1" label="标题1." />
+                        <button id="btnT3_2" onAction="OnTitleAction" tag="3|2" label="标题2." />
+                        <button id="btnT3_3" onAction="OnTitleAction" tag="3|3" label="标题3." />
+                        <button id="btnT3_4" onAction="OnTitleAction" tag="3|4" label="标题4." />
+                        <button id="btnT3_5" onAction="OnTitleAction" tag="3|5" label="标题5." />
+                        <button id="btnT3_6" onAction="OnTitleAction" tag="3|6" label="标题6." />
+                        <button id="btnT3_7" onAction="OnTitleAction" tag="3|7" label="标题7." />
+                        <button id="btnT3_8" onAction="OnTitleAction" tag="3|8" label="标题8." />
+                        <button id="btnT3_9" onAction="OnTitleAction" tag="3|9" label="标题9." />
+                        <button id="btnT3_10" onAction="OnTitleAction" tag="3|10" label="标题10." />
+                        <button id="btnT3_11" onAction="OnTitleAction" tag="3|11" label="标题11." />
+                        <button id="btnT3_12" onAction="OnTitleAction" tag="3|12" label="标题12." />
+                    </menu>
+                    <menu id="mnuTitle4" getImage="GetImage" label="标题(1)" screentip="设为四级标题（三号仿宋，（1）~（12））">
+                        <button id="btnT4_1" onAction="OnTitleAction" tag="4|1" label="标题（1）" />
+                        <button id="btnT4_2" onAction="OnTitleAction" tag="4|2" label="标题（2）" />
+                        <button id="btnT4_3" onAction="OnTitleAction" tag="4|3" label="标题（3）" />
+                        <button id="btnT4_4" onAction="OnTitleAction" tag="4|4" label="标题（4）" />
+                        <button id="btnT4_5" onAction="OnTitleAction" tag="4|5" label="标题（5）" />
+                        <button id="btnT4_6" onAction="OnTitleAction" tag="4|6" label="标题（6）" />
+                        <button id="btnT4_7" onAction="OnTitleAction" tag="4|7" label="标题（7）" />
+                        <button id="btnT4_8" onAction="OnTitleAction" tag="4|8" label="标题（8）" />
+                        <button id="btnT4_9" onAction="OnTitleAction" tag="4|9" label="标题（9）" />
+                        <button id="btnT4_10" onAction="OnTitleAction" tag="4|10" label="标题（10）" />
+                        <button id="btnT4_11" onAction="OnTitleAction" tag="4|11" label="标题（11）" />
+                        <button id="btnT4_12" onAction="OnTitleAction" tag="4|12" label="标题（12）" />
+                    </menu>
+                    <button id="btnUnderDot" onAction="OnAction" getImage="GetImage" screentip="着重号" supertip="给选定文字添加或取消下实心圆点着重号" label="着重号" />
+                    <button id="btnHideFont" onAction="OnAction" getImage="GetImage" screentip="隐藏文字" supertip="切换选定文字的隐藏格式" label="隐藏文字" />
+                    <separator id="separator3" />
+                    <menu id="glyFont" getImage="GetImage" label="字体更改" screentip="全文替换公文常用字体或修改数字/英文字体">
+                        <button id="btnFontFSgb2312" onAction="OnAction" label="仿宋_GB2312 =&gt; 仿宋" />
+                        <button id="btnFontFS" onAction="OnAction" label="仿宋 =&gt; 仿宋_GB2312" />
+                        <button id="btnFontKTgb2312" onAction="OnAction" label="楷体_GB2312 =&gt; 楷体" />
+                        <button id="btnFontKT" onAction="OnAction" label="楷体 =&gt; 楷体_GB2312" />
+                        <button id="btnFontBS2HT" onAction="OnAction" label="方正小标宋 =&gt; 黑体" />
+                        <button id="btnFontHT2BS" onAction="OnAction" label="黑体 =&gt; 方正小标宋_GBK" />
+                        <menuSeparator id="sepFontDlg" />
+                        <button id="btnFontChangeDialog" onAction="OnAction" label="指定字体更改 (中文/数字/字母)..." />
+                    </menu>
+                    <button id="btnNum2Txt" onAction="OnAction" getImage="GetImage" screentip="编号转文字" supertip="将文档自动编号改为静态文字格式" label="编号转文字" size="large" />
+                    <separator id="separator1" />
+                    <button id="btnHead" onAction="OnAction" getImage="GetImage" screentip="三号黑体" supertip="常用于二级标题、密级、紧急程度等文字" label="三号黑体" />
+                    <button id="btnName" onAction="OnAction" getImage="GetImage" screentip="三号楷体" supertip="常用于签发人姓名、三级标题等文字" label="三号楷体" />
+                    <button id="btnFoot" onAction="OnAction" getImage="GetImage" screentip="四号仿宋" supertip="常用于版记部分的抄送机关、印发机关文字" label="四号仿宋" />
+                    <menu id="btnStyle" getImage="GetImage" label="公文样式" size="large" screentip="生成或强制重建标准公文样式集">
+                        <button id="btnStyleCreate" onAction="OnAction" label="生成公文专用样式" screentip="创建公文:标题、1~4级标题、正文、正文(缩进)样式" />
+                        <button id="btnStyleR" onAction="OnAction" label="强制重建公文样式" screentip="清理现有自定义样式并重新生成公文样式" />
+                    </menu>
+                </group>
+
+                <!-- 4. 插入组 -->
+                <group id="group4" label="插入">
+                    <menu id="mnuInsertGWObject" getImage="GetImage" label="公文部件" size="large" screentip="快速插入红头版头、函线、装订线与版记表格">
+                        <button id="btnHeadSingle" onAction="OnAction" getImage="GetImage" label="版头：单行发文机关" screentip="插入单行红头发文机关标志与发文字号、红色反线" />
+                        <button id="btnHeadMulti" onAction="OnAction" getImage="GetImage" label="版头：联合发文机关" screentip="插入多单位联合发文红头表格版式" />
+                        <menuSeparator id="sepObj1" />
+                        <button id="btnLine1" onAction="OnAction" getImage="GetImage" label="红色间隔线 (反线 2.25磅)" screentip="在当前段落下方插入2.25磅红色间隔线" />
+                        <button id="btnLineH1" onAction="OnAction" getImage="GetImage" label="版头：信函红线 (上沿)" screentip="插入武警/信函格式上沿双红线" />
+                        <button id="btnLineH2" onAction="OnAction" getImage="GetImage" label="版头：信函红线 (下沿)" screentip="插入信函格式下沿红线" />
+                        <button id="btnBindLine" onAction="OnAction" getImage="GetImage" label="左侧装订线" screentip="在页面左侧外边距处插入竖排装订线" />
+                        <menuSeparator id="sepObj2" />
+                        <button id="btnFootSingle" onAction="OnAction" getImage="GetImage" label="单行版记 (印发机关+日期)" screentip="插入底端单行版记表格（上下粗线1磅）" />
+                        <button id="btnFootDouble" onAction="OnAction" getImage="GetImage" label="双行版记 (含抄送机关)" screentip="插入底端双行版记表格（上下1磅、中间0.75磅）" />
+                    </menu>
+                    <button id="btnDate" onAction="OnAction" getImage="GetImage" screentip="插入公文日期" supertip="插入公文格式日期（如：2026年11月14日）" label="插入日期" />
+                    <button id="btnInsertPaper" onAction="OnAction" getImage="GetImage" screentip="插入横向页面" supertip="在当前页之后插入一个独立的横向A4分节页面" label="插入横页" />
+                    <menu id="glyFoot" getImage="GetImage" label="公文页码" size="large" screentip="插入 — 1 — 格式的四号宋体公文页码">
+                        <button id="btnNumberCenter" onAction="OnAction" getImage="GetImage" label="页码居中 (— 1 —)" screentip="在页脚居中插入 — 1 — 页码" />
+                        <button id="btnNumberOutside" onAction="OnAction" getImage="GetImage" label="页码外侧 (奇右偶左)" screentip="奇数页右侧空1字、偶数页左侧空1字（双面打印标准）" />
+                        <button id="btnNumberRight" onAction="OnAction" getImage="GetImage" label="页码居右" screentip="在页脚居右插入 — 1 — 页码" />
+                        <button id="btnNumberOnLocation" onAction="OnAction" getImage="GetImage" label="光标处插入页码" screentip="直接在当前光标位置插入 — 1 — 页码" />
+                    </menu>
+                    <menu id="glySymbol" getImage="GetImage" label="常用符号" size="large" screentip="插入公文常用标点符号、特殊字符与六角括号替换">
+                        <button id="btnSym_228" onAction="OnSymbolAction" tag="〔〕" label="〔〕 六角括号 (发文字号专用)" />
+                        <button id="btnSym_225" onAction="OnSymbolAction" tag="、" label="、 顿号" />
+                        <button id="btnSym_226" onAction="OnSymbolAction" tag="——" label="—— 破折号" />
+                        <button id="btnSym_223" onAction="OnSymbolAction" tag="·" label="· 间隔号" />
+                        <button id="btnSym_224" onAction="OnSymbolAction" tag="……" label="…… 省略号" />
+                        <button id="btnSym_227" onAction="OnSymbolAction" tag="～" label="～ 连接号" />
+                        <button id="btnSym_229" onAction="OnSymbolAction" tag="《》" label="《》 双书名号" />
+                        <button id="btnSym_230" onAction="OnSymbolAction" tag="〈〉" label="〈〉 单书名号" />
+                        <button id="btnSym_245" onAction="OnSymbolAction" tag="□" label="□ 虚缺号" />
+                        <button id="btnSym_246" onAction="OnSymbolAction" tag="★" label="★ 五角星(密级)" />
+                        <button id="btnSym_219" onAction="OnSymbolAction" tag="㎡" label="㎡ 平方米" />
+                        <button id="btnSym_220" onAction="OnSymbolAction" tag="m³" label="m³ 立方米" />
+                        <button id="btnSym_221" onAction="OnSymbolAction" tag="‰" label="‰ 千分号" />
+                        <button id="btnSym_222" onAction="OnSymbolAction" tag="℃" label="℃ 摄氏度" />
+                        <button id="btnSym_circles" onAction="OnSymbolAction" tag="①②③④⑤⑥⑦⑧⑨⑩" label="① ~ ⑩ 带圈数字串" />
+                        <menuSeparator id="sepSym1" />
+                        <button id="btnSymbol_zkh" onAction="OnAction" label="将 [2026] 替换为 〔2026〕" screentip="全文替换年份方括号[]为六角括号〔〕" />
+                        <button id="btnSymbol_hkh" onAction="OnAction" label="将 【2026】 替换为 〔2026〕" screentip="全文替换年份黑括号【】为六角括号〔〕" />
+                        <button id="btnSymbol_index" onAction="OnAction" label="选中数字转为带圈序号 (1-20)" screentip="将选中的1-20数字转换为①~⑳" />
+                    </menu>
+                    <menu id="btnInsertSignPic" getImage="GetImage" label="加盖公章" size="large" screentip="插入透明PNG电子公章并设为浮于文字上方">
+                        <button id="btnInsertSignPicSave" onAction="OnAction" getImage="GetImage" label="嵌入公章图片 (随文档保存)" screentip="选择本地PNG公章插入当前位置并浮于文字上方" />
+                        <button id="btnInsertSignPicLink" onAction="OnAction" getImage="GetImage" label="链接公章图片 (分发不带走)" screentip="以外部链接方式插入公章，发给他人时自动隐藏" />
+                        <button id="btnStampEveryPage" onAction="OnAction" getImage="GetImage" label="每页批量盖章 (页眉底层定位)" screentip="在文档每页固定位置批量加盖3cm×3cm公章" />
+                    </menu>
+                </group>
+
+                <!-- 5. 其他与导出组 -->
+                <group id="group6" label="副本与工具">
+                    <menu id="glyBak" getImage="GetImage" label="生成副本" size="large" screentip="在文档同目录下生成 PDF / DOC / PNG / JPG 格式副本">
+                        <button id="btnSaveAsPDF" onAction="OnAction" getImage="GetImage" label="生成 PDF 副本 (.pdf)" screentip="在当前文档所在目录生成同名 PDF 文件" />
+                        <button id="btnSaveAsDoc" onAction="OnAction" getImage="GetImage" label="生成 Word 97-2003 副本 (.doc)" screentip="在当前文档所在目录生成同名 .doc 文件" />
+                        <button id="btnSaveAsPic" onAction="OnAction" getImage="GetImage" label="生成 PNG 图片副本 (逐页导出)" screentip="将文档各页导出为高清 PNG 图片" />
+                        <button id="btnSaveAsJPG" onAction="OnAction" getImage="GetImage" label="生成 JPG 图片副本 (逐页导出)" screentip="将文档各页导出为 JPG 图片" />
+                        <button id="btnSaveAsScannedPDF" onAction="OnAction" getImage="GetImage" label="生成仿真扫描版 PDF 副本..." screentip="将当前文档转为带轻微倾斜、噪点与印章质感的扫描件PDF" />
+                    </menu>
+                    <button id="btnProtectDoc" onAction="OnAction" getImage="GetImage" label="限制编辑" screentip="切换文档只读/修订保护状态" />
+                    <menu id="glyPassword" getImage="GetImage" label="文档加密" screentip="设置或清除文档打开密码与修改密码">
+                        <button id="btnSetPW" onAction="OnAction" getImage="GetImage" label="设置打开/修改密码..." />
+                        <button id="btnClearOpenPW" onAction="OnAction" getImage="GetImage" label="清除打开密码" />
+                        <button id="btnClearProtectPW" onAction="OnAction" getImage="GetImage" label="清除修改密码" />
+                    </menu>
+                    <menu id="mnuSpeakGroup" getImage="GetImage" label="语音朗读" screentip="调用银河麒麟系统语音合成引擎朗读公文校对">
+                        <button id="btnSpeak" onAction="OnAction" getImage="GetImage" label="朗读所选/当前段落 (再次点击停止)" />
+                        <button id="btnSpeakOption" onAction="OnAction" getImage="GetImage" label="语音朗读高级设置 (语速/发音人)..." />
+                    </menu>
+                </group>
+
+                <!-- 6. 实验室与脚本中心组 -->
+                <group id="groupTest" label="脚本与批处理">
+                    <button id="btnVBA" onAction="OnAction" getImage="GetImage" label="公文脚本库" size="large" screentip="打开内置42个公文自动化脚本中心（已全部适配麒麟系统与海光3350）" />
+                    <menu id="mnuQuickScripts" getImage="GetImage" label="常用脚本" screentip="一键运行高频公文排版脚本">
+                        <button id="btnRunScript_Auto2026" onAction="OnQuickScript" tag="auto_layout_2026" label="1. 公文自动排版 (2026版)" />
+                        <button id="btnRunScript_Sign" onAction="OnQuickScript" tag="official_signature" label="2. 公文落款自动对齐 (署名+日期)" />
+                        <button id="btnRunScript_ChapterBold" onAction="OnQuickScript" tag="bold_chapter_article" label="3. 精准加粗第N章第N条" />
+                        <button id="btnRunScript_ChapterCenter" onAction="OnQuickScript" tag="center_chapter_line" label="4. 第N章整行加粗居中" />
+                        <button id="btnRunScript_ChapterSpace" onAction="OnQuickScript" tag="chapter_article_space" label="5. 第N章/条后规范1空格" />
+                        <button id="btnRunScript_RenumberChapter" onAction="OnQuickScript" tag="renumber_chapter_article" label="6. 重新整理章条序号 (一~九十九)" />
+                        <button id="btnRunScript_RenumberCn" onAction="OnQuickScript" tag="renumber_cn_brackets" label="7. （一）至（九十九）重新排序" />
+                        <button id="btnRunScript_RenumberNum" onAction="OnQuickScript" tag="renumber_selection_digits" label="8. 选中内容重新数字编号 (1. 2. 3.)" />
+                        <button id="btnRunScript_Rmb" onAction="OnQuickScript" tag="number_to_rmb" label="9. 选中数字转为人民币大写" />
+                        <button id="btnRunScript_NameAlign" onAction="OnQuickScript" tag="align_names" label="10. 姓名分散对齐 (2字/3字对齐)" />
+                        <button id="btnRunScript_PlaceCard" onAction="OnQuickScript" tag="make_place_cards" label="11. 会议桌签标牌双面制作" />
+                        <button id="btnRunScript_DelHeaderFooter" onAction="OnQuickScript" tag="delete_all_headers_footers" label="12. 彻底删除全篇页眉页脚" />
+                    </menu>
+                    <menu id="mnuSelect" getImage="GetImage" label="对象与转换" screentip="批量选择或转换文档中的图形、表格与分节">
+                        <button id="btnSelectSharp" onAction="OnAction" label="选择所有浮动图形" />
+                        <button id="btnSelectTables" onAction="OnAction" label="选择所有表格" />
+                        <button id="btnSelectCurrentPage" onAction="OnAction" label="选择当前页内容" />
+                        <menuSeparator id="sepConv" />
+                        <button id="btnSharp2OnText" onAction="OnAction" label="嵌入图片转：浮于文字上方" />
+                        <button id="btnSharp2Wrapping" onAction="OnAction" label="嵌入图片转：四周型环绕" />
+                        <button id="btnSharp2TopBonttom" onAction="OnAction" label="嵌入图片转：上下型环绕" />
+                        <button id="btnSharp2Top" onAction="OnAction" label="衬于文字下方图片转：浮于文字上方" />
+                        <menuSeparator id="sepSplit" />
+                        <button id="btnSplitSection" onAction="OnAction" label="按分节符拆分文档" />
+                        <button id="btnOpenDocFolder" onAction="OnAction" label="在麒麟文件管理器(Peony)中打开所在目录" />
+                    </menu>
+                </group>
+
+                <!-- 7. 关于与设置组 -->
+                <group id="group5" label="关于">
+                    <button id="btnAbout" onAction="OnAction" getImage="GetImage" label="关于与设置" size="large" screentip="查看麒麟海光版环境信息及自定义公文各层级默认字体" />
+                    <button id="btnDesktopApp" onAction="OnAction" getImage="GetImage" label="独立批处理端" screentip="启动银河麒麟独立桌面端公文批处理工具" />
+                    <button id="btnHelp" onAction="OnAction" getImage="GetImage" label="使用指南" screentip="查看麒麟版操作手册与脚本说明" />
+                </group>
+            </tab>
+        </tabs>
+    </ribbon>
+</customUI>

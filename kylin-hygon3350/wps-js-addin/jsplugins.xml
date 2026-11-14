@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jsplugins>
+    <jspluginonline name="xkl_gw_addin" type="wps" url="http://127.0.0.1:38890/" version="2.1.0" enable="enable_dev" install="null"/>
+</jsplugins>

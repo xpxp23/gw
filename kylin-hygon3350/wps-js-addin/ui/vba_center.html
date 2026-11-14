@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <title>小恐龙公文脚本中心 (42个脚本银河麒麟原生引擎)</title>
+    <script type="text/javascript" src="../js/wps_enum.js"></script>
+    <script type="text/javascript" src="../js/config.js"></script>
+    <script type="text/javascript" src="../js/layout.js"></script>
+    <script type="text/javascript" src="../js/format.js"></script>
+    <script type="text/javascript" src="../js/fonts.js"></script>
+    <script type="text/javascript" src="../js/pagenumber.js"></script>
+    <script type="text/javascript" src="../js/shapes.js"></script>
+    <script type="text/javascript" src="../js/export.js"></script>
+    <script type="text/javascript" src="../js/vba_ported_scripts.js"></script>
+    <style>
+        body {
+            font-family: "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+            font-size: 13px;
+            margin: 0;
+            padding: 14px;
+            background: #f6f8fa;
+            color: #1f2328;
+        }
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .search-input {
+            flex: 1;
+            padding: 7px 10px;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        .script-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            max-height: 430px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .script-card {
+            background: #fff;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .script-card:hover {
+            border-color: #b91c1c;
+            background: #fffafa;
+        }
+        .script-name {
+            font-weight: 600;
+            color: #1f2328;
+        }
+        .script-desc {
+            font-size: 11.5px;
+            color: #57606a;
+            margin-top: 2px;
+        }
+        .btn-run {
+            padding: 5px 12px;
+            border-radius: 4px;
+            border: 1px solid #b91c1c;
+            background: #b91c1c;
+            color: #fff;
+            cursor: pointer;
+            white-space: nowrap;
+            font-size: 12px;
+        }
+        .btn-run:hover { background: #991b1b; }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <input type="text" id="q" class="search-input" placeholder="搜索公文脚本（如：自动排版、落款、章条、人民币、桌签、盖章、拆分...）" oninput="renderList()" />
+        <button class="btn-run" style="background:#1e293b; border-color:#1e293b;" onclick="launchBatchGui()">打开独立文件批处理端</button>
+    </div>
+
+    <div id="list" class="script-grid"></div>
+
+    <script>
+        var SCRIPTS = [
+            { id: "auto_layout_2026", name: "公文自动排版 (2026国标版)", desc: "一键设置A4国标版心、主标题、四级标题、落款、附件与页码" },
+            { id: "official_signature", name: "公文落款自动对齐", desc: "将发文机关署名与成文日期智能居中对应、日期右空4字" },
+            { id: "bold_chapter_article", name: "加粗第N章第N条 (精准)", desc: "仅将“第X章”、“第X条”词头精准加粗" },
+            { id: "bold_chapter_article_line", name: "加粗第N章第N条 (整行)", desc: "将包含“第X章”、“第X条”的整段标题加粗" },
+            { id: "center_chapter_line", name: "第N章整行加粗居中", desc: "将所有“第…章”段落设为顶格、居中、加粗" },
+            { id: "chapter_article_space", name: "第N章/条后规范1空格", desc: "自动规范“第X章/条”与后续标题文字之间为1个空格" },
+            { id: "renumber_chapter_article", name: "重新整理章条序号", desc: "全文章、条各自从“第一”开始连续顺序编号" },
+            { id: "renumber_cn_brackets", name: "（一）至（九十九）重新排序", desc: "将中文括号序号从（一）开始连续重排" },
+            { id: "renumber_selection_digits", name: "选中内容重新数字编号", desc: "将选定段落从 1. 2. 3. 开始重新连续编号" },
+            { id: "number_to_rmb", name: "数字转为人民币大写", desc: "将选中数字金额转换为标准会计人民币大写" },
+            { id: "align_names", name: "所选姓名分散对齐", desc: "将2字/3字人名按指定字宽对齐（如2字姓名自动对齐3字）" },
+            { id: "make_place_cards", name: "会议桌签标牌双面制作", desc: "一键生成A4横向72号黑体双面对折会议席卡/桌签" },
+            { id: "delete_all_headers_footers", name: "彻底删除全篇页眉页脚", desc: "清除所有分节的页眉、页脚文字及页眉横线" },
+            { id: "picture_add_border", name: "图片批量加边框", desc: "为文档内所有图片统一添加 0.25 磅黑色细边框" },
+            { id: "picture_batch_resize", name: "批量调整图片大小", desc: "按指定厘米宽高批量缩放文档内所有图片" },
+            { id: "copy_local_path", name: "复制文件本地路径", desc: "复制当前公文在银河麒麟系统中的完整路径到剪贴板" },
+            { id: "multiplication_table", name: "生成九九乘法口诀表", desc: "在当前位置自动生成格式化的乘法口诀表" },
+            { id: "save_by_selected_text", name: "用所选文字保存文件名", desc: "提取当前选中的标题文字作为文件名另存文档" }
+        ];
+
+        function renderList() {
+            var kw = (document.getElementById("q").value || "").trim().toLowerCase();
+            var container = document.getElementById("list");
+            container.innerHTML = "";
+            for (var i = 0; i < SCRIPTS.length; i++) {
+                var s = SCRIPTS[i];
+                if (kw && s.name.toLowerCase().indexOf(kw) === -1 && s.desc.toLowerCase().indexOf(kw) === -1) {
+                    continue;
+                }
+                var card = document.createElement("div");
+                card.className = "script-card";
+                card.innerHTML =
+                    '<div><div class="script-name">' + s.name + '</div><div class="script-desc">' + s.desc + '</div></div>' +
+                    '<button class="btn-run" onclick="runScript(\'' + s.id + '\')">立即运行</button>';
+                container.appendChild(card);
+            }
+        }
+
+        function runScript(id) {
+            GwVbaPorted.executeByKey(id);
+        }
+
+        function launchBatchGui() {
+            GwConfig.callBridge("/api/launch-desktop-gui", {}, function (err) {
+                if (err) {
+                    alert("请在终端执行 xkl-gw-gui 或双击桌面【小恐龙公文排版助手(麒麟版)】图标启动多文档批处理工作台。");
+                }
+            });
+        }
+
+        window.onload = renderList;
+    </script>
+</body>
+</html>

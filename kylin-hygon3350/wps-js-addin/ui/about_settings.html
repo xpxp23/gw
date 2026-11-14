@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <title>关于小恐龙公文排版助手 (银河麒麟 / 海光3350 专版)</title>
+    <script type="text/javascript" src="../js/wps_enum.js"></script>
+    <script type="text/javascript" src="../js/config.js"></script>
+    <style>
+        body {
+            font-family: "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+            font-size: 12.5px;
+            margin: 0;
+            padding: 14px;
+            background: #f6f8fa;
+            color: #1f2328;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            padding: 10px 14px;
+            margin-bottom: 10px;
+        }
+        .badge {
+            background: #fee2e2;
+            color: #991b1b;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11.5px;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        .font-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 14px;
+        }
+        .font-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4px;
+        }
+        .font-item label {
+            width: 78px;
+            font-weight: 500;
+        }
+        .font-item input[type="text"] {
+            width: 112px;
+            padding: 3px 6px;
+            border: 1px solid #d0d7de;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .font-item input[type="number"] {
+            width: 46px;
+            padding: 3px 4px;
+            border: 1px solid #d0d7de;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .sys-info {
+            font-family: monospace;
+            font-size: 11.5px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 8px;
+            white-space: pre-wrap;
+            color: #334155;
+        }
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        .btn {
+            padding: 6px 14px;
+            border-radius: 4px;
+            border: 1px solid #d0d7de;
+            background: #fff;
+            cursor: pointer;
+            font-size: 12.5px;
+        }
+        .btn-primary {
+            background: #b91c1c;
+            color: #fff;
+            border-color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <div style="font-size:15px; font-weight:700; color:#b91c1c;">小恐龙公文排版助手 v2.1.0</div>
+            <div style="color:#57606a; margin-top:2px;">银河麒麟桌面操作系统 V10 · 海光 Hygon C86 3350 (x86_64) 信创专版</div>
+        </div>
+        <span class="badge">MIT 开源信创版</span>
+    </div>
+
+    <div class="card">
+        <div style="font-weight:600; margin-bottom:8px; color:#b91c1c;">高级功能：各层级公文默认字体与字号配置 (单位: pt)</div>
+        <div class="font-grid">
+            <div class="font-item"><label>公文标题:</label><input type="text" id="f_title" /><input type="number" id="s_title" step="0.5" /></div>
+            <div class="font-item"><label>一级标题:</label><input type="text" id="f_title1" /><input type="number" id="s_title1" step="0.5" /></div>
+            <div class="font-item"><label>二级标题:</label><input type="text" id="f_title2" /><input type="number" id="s_title2" step="0.5" /></div>
+            <div class="font-item"><label>三级标题:</label><input type="text" id="f_title3" /><input type="number" id="s_title3" step="0.5" /></div>
+            <div class="font-item"><label>四级标题:</label><input type="text" id="f_title4" /><input type="number" id="s_title4" step="0.5" /></div>
+            <div class="font-item"><label>公文正文:</label><input type="text" id="f_normal" /><input type="number" id="s_normal" step="0.5" /></div>
+            <div class="font-item"><label>版头文字:</label><input type="text" id="f_head" /><input type="number" id="s_head" step="0.5" /></div>
+            <div class="font-item"><label>签发人名:</label><input type="text" id="f_signerName" /><input type="number" id="s_signerName" step="0.5" /></div>
+            <div class="font-item"><label>版记文字:</label><input type="text" id="f_banji" /><input type="number" id="s_banji" step="0.5" /></div>
+            <div class="font-item"><label>页码字体:</label><input type="text" id="f_pageNumber" /><input type="number" id="s_pageNumber" step="0.5" /></div>
+        </div>
+        <div style="margin-top:8px; display:flex; align-items:center; justify-content:space-between;">
+            <span>默认西文/数字字体:</span>
+            <input type="text" id="f_letter" style="width:180px; padding:3px 6px; border:1px solid #d0d7de; border-radius:4px;" />
+        </div>
+    </div>
+
+    <div class="card">
+        <div style="font-weight:600; margin-bottom:4px;">系统与硬件环境诊断信息</div>
+        <div id="sysInfo" class="sys-info">正在检测银河麒麟与海光 3350 运行环境...</div>
+    </div>
+
+    <div class="actions">
+        <button class="btn" onclick="resetFonts()">恢复默认公文字体</button>
+        <div style="display:flex; gap:8px;">
+            <button class="btn btn-primary" onclick="saveFontSettings()">保存配置</button>
+            <button class="btn" onclick="window.close()">关闭</button>
+        </div>
+    </div>
+
+    <script>
+        var KEYS = ["title", "title1", "title2", "title3", "title4", "normal", "head", "signerName", "banji", "pageNumber"];
+
+        function loadSettings() {
+            var cfg = GwConfig.load();
+            for (var i = 0; i < KEYS.length; i++) {
+                var k = KEYS[i];
+                document.getElementById("f_" + k).value = cfg.fonts[k].name;
+                document.getElementById("s_" + k).value = cfg.fonts[k].size;
+            }
+            document.getElementById("f_letter").value = cfg.letterFont || "Times New Roman";
+
+            var baseInfo = "目标平台: 银河麒麟桌面操作系统 V10 (Kylin OS)\n" +
+                           "目标处理器: 海光 Hygon C86 3350 (x86_64 / amd64, Zen 架构, AVX2)\n" +
+                           "运行模式: WPS Office Linux JS 加载项 + 本地麒麟桥接守护服务\n" +
+                           "UserAgent: " + navigator.userAgent;
+            document.getElementById("sysInfo").innerText = baseInfo;
+
+            GwConfig.callBridge("/api/system-info", {}, function (err, resp) {
+                if (!err && resp && resp.info) {
+                    document.getElementById("sysInfo").innerText = resp.info;
+                }
+            });
+        }
+
+        function saveFontSettings() {
+            var cfg = GwConfig.load();
+            for (var i = 0; i < KEYS.length; i++) {
+                var k = KEYS[i];
+                cfg.fonts[k].name = document.getElementById("f_" + k).value.trim() || cfg.fonts[k].name;
+                cfg.fonts[k].size = parseFloat(document.getElementById("s_" + k).value) || cfg.fonts[k].size;
+            }
+            cfg.letterFont = document.getElementById("f_letter").value.trim() || "Times New Roman";
+            cfg.numberFont = cfg.letterFont;
+            GwConfig.save(cfg);
+            alert("公文字体与字号配置已保存！");
+            window.close();
+        }
+
+        function resetFonts() {
+            if (!confirm("确定要恢复所有公文字体为《党政机关公文格式》默认值吗？")) return;
+            GwConfig.reset();
+            loadSettings();
+        }
+
+        window.onload = loadSettings;
+    </script>
+</body>
+</html>
