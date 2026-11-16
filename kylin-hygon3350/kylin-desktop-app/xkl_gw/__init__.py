@@ -3,5 +3,5 @@
 核心引擎包
 """
 
-__version__ = "2.1.0-kylin-hygon3350"
+__version__ = "2.2.0-kylin-hygon3350"
 __author__ = "小恐龙工作室 (Kylin & Hygon 3350 Port)"

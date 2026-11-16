@@ -1,18 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-小恐龙公文排版助手 - 银河麒麟 V10 (海光 Hygon C86 3350 x86_64)
+小恐龙公文排版助手 v2.2.0 - 银河麒麟 V10 (海光 Hygon C86 3350 x86_64)
 核心 OpenXML (.docx) 国标公文排版引擎与 42 个 VBA 脚本原生实现
 严格遵循《党政机关公文格式国家标准》(GB/T 9704—2012)
 """
 
-import copy
 import datetime
 import glob
-import io
-import math
 import os
-import platform
 import random
 import re
 import shutil
@@ -126,12 +122,14 @@ def set_run_fonts(
     italic: bool = False,
     color_rgb: Optional[Tuple[int, int, int]] = None,
     under_dot: bool = False,
+    hidden: bool = False,
 ):
-    """设置 Run 的中西文字体、字号、加粗、颜色及着重号"""
+    """设置 Run 的中西文字体、字号、加粗、颜色、着重号及隐藏属性"""
     run.font.name = en_font
     run.font.size = Pt(size_pt)
     run.bold = bold
     run.italic = italic
+    run.font.hidden = hidden
     if color_rgb is not None:
         run.font.color.rgb = RGBColor(*color_rgb)
 
@@ -167,7 +165,6 @@ def set_paragraph_char_indent(
         ind = OxmlElement("w:ind")
         pPr.append(ind)
 
-    # 清除旧属性
     for attr in [
         "w:firstLine", "w:firstLineChars", "w:hanging", "w:hangingChars",
         "w:left", "w:leftChars", "w:right", "w:rightChars"
@@ -195,21 +192,31 @@ def set_paragraph_char_indent(
         ind.set(qn("w:right"), str(int(round(right_chars * font_size_pt * 20))))
 
 
-def set_paragraph_bottom_border(paragraph, color_hex: str = "FF0000", sz_eighths_pt: int = 18, val: str = "single"):
-    """为段落添加底部横线（如 2.25磅红色间隔线反线 sz=18）"""
+def set_paragraph_border(
+    paragraph,
+    side: str = "bottom",
+    color_hex: str = "FF0000",
+    sz_eighths_pt: int = 18,
+    val: str = "single",
+):
+    """为段落添加顶部或底部横线（如 2.25磅红色间隔线反线 sz=18，信函双红线 val='double'）"""
     pPr = paragraph._p.get_or_add_pPr()
     pBdr = pPr.find(qn("w:pBdr"))
     if pBdr is None:
         pBdr = OxmlElement("w:pBdr")
         pPr.append(pBdr)
-    bottom = pBdr.find(qn("w:bottom"))
-    if bottom is None:
-        bottom = OxmlElement("w:bottom")
-        pBdr.append(bottom)
-    bottom.set(qn("w:val"), val)
-    bottom.set(qn("w:sz"), str(sz_eighths_pt))
-    bottom.set(qn("w:space"), "1")
-    bottom.set(qn("w:color"), color_hex)
+    bdr = pBdr.find(qn(f"w:{side}"))
+    if bdr is None:
+        bdr = OxmlElement(f"w:{side}")
+        pBdr.append(bdr)
+    bdr.set(qn("w:val"), val)
+    bdr.set(qn("w:sz"), str(sz_eighths_pt))
+    bdr.set(qn("w:space"), "1")
+    bdr.set(qn("w:color"), color_hex)
+
+
+def set_paragraph_bottom_border(paragraph, color_hex: str = "FF0000", sz_eighths_pt: int = 18, val: str = "single"):
+    set_paragraph_border(paragraph, side="bottom", color_hex=color_hex, sz_eighths_pt=sz_eighths_pt, val=val)
 
 
 # ==================== 2. GB/T 9704—2012 国标公文核心处理器 ====================
@@ -217,6 +224,7 @@ def set_paragraph_bottom_border(paragraph, color_hex: str = "FF0000", sz_eighths
 class GwDocumentProcessor:
     """
     面向银河麒麟 V10 (Hygon 3350 x86_64) 的全功能公文排版引擎
+    完整覆盖原 Windows VSTO 插件的全部 7 大功能组与 42 个 VBA 脚本
     """
 
     DEFAULT_CONFIG = {
@@ -234,6 +242,8 @@ class GwDocumentProcessor:
         "font_h3": "仿宋",
         "font_h4": "仿宋",
         "font_body": "仿宋",
+        "font_head": "黑体",
+        "font_signer": "楷体",
         "font_banji": "仿宋",
         "font_pagenum": "宋体",
         "font_en": "Times New Roman",
@@ -241,6 +251,8 @@ class GwDocumentProcessor:
 
     def __init__(self, config: Optional[Dict] = None):
         self.cfg = {**self.DEFAULT_CONFIG, **(config or {})}
+
+    # ---------- 版面组功能 ----------
 
     def apply_gb9704_page_setup(self, doc: Document) -> None:
         """设置 GB/T 9704—2012 页面尺寸、页边距与 22行×28字版心网格"""
@@ -252,22 +264,220 @@ class GwDocumentProcessor:
                 sec.page_width = Mm(210.0)
                 sec.page_height = Mm(297.0)
 
-            sec.top_margin = Mm(self.cfg["top_mm"])
-            sec.bottom_margin = Mm(self.cfg["bottom_mm"])
-            sec.left_margin = Mm(self.cfg["left_mm"])
-            sec.right_margin = Mm(self.cfg["right_mm"])
-            sec.footer_distance = Mm(self.cfg["footer_mm"])
+            sec.top_margin = Mm(float(self.cfg["top_mm"]))
+            sec.bottom_margin = Mm(float(self.cfg["bottom_mm"]))
+            sec.left_margin = Mm(float(self.cfg["left_mm"]))
+            sec.right_margin = Mm(float(self.cfg["right_mm"]))
+            sec.footer_distance = Mm(float(self.cfg["footer_mm"]))
             sec.header_distance = Mm(15.0)
 
-            # 写入 OpenXML docGrid (22行 x 28字, 行距28pt=560 dxa)
             sectPr = sec._sectPr
             docGrid = sectPr.find(qn("w:docGrid"))
             if docGrid is None:
                 docGrid = OxmlElement("w:docGrid")
                 sectPr.append(docGrid)
             docGrid.set(qn("w:type"), "linesAndChars")
-            docGrid.set(qn("w:linePitch"), "560")
+            docGrid.set(qn("w:linePitch"), str(int(round(float(self.cfg["line_spacing_pt"]) * 20))))
             docGrid.set(qn("w:charSpace"), "0")
+
+    def indent_all_body_2chars(self, doc: Document) -> int:
+        """中文缩进：将正文段落统一设为首行缩进2字符"""
+        cnt = 0
+        for p in doc.paragraphs:
+            if p.alignment != WD_ALIGN_PARAGRAPH.CENTER and (p.text or "").strip():
+                set_paragraph_char_indent(p, first_line_chars=2, font_size_pt=16.0)
+                cnt += 1
+        return cnt
+
+    def flush_left_all_paragraphs(self, doc: Document) -> int:
+        """段落顶格：清除所有段落首行缩进与左缩进"""
+        cnt = 0
+        for p in doc.paragraphs:
+            set_paragraph_char_indent(p, first_line_chars=0, left_chars=0, right_chars=0)
+            cnt += 1
+        return cnt
+
+    def remove_header_bottom_line(self, doc: Document) -> None:
+        """删除页眉横线"""
+        for sec in doc.sections:
+            for p in sec.header.paragraphs:
+                pPr = p._p.get_or_add_pPr()
+                pBdr = pPr.find(qn("w:pBdr"))
+                if pBdr is not None:
+                    pPr.remove(pBdr)
+
+    def format_full_line_rearrange(self, doc: Document) -> int:
+        """断行重排：合并未以句末标点（。：！？；）结尾的异常断行段落"""
+        paras = list(doc.paragraphs)
+        merged = 0
+        i = 0
+        while i < len(paras) - 1:
+            txt = (paras[i].text or "").rstrip()
+            nxt = (paras[i + 1].text or "").lstrip()
+            if txt and nxt and not re.search(r"[。：！？；…—”》）]$", txt) and len(txt) > 15:
+                paras[i].add_run(nxt)
+                paras[i + 1]._element.getparent().remove(paras[i + 1]._element)
+                paras.pop(i + 1)
+                merged += 1
+            else:
+                i += 1
+        return merged
+
+    def format_soft_return_to_paragraph(self, doc: Document) -> int:
+        """换行符转回车：将段内软回车 (\n / \v) 拆分为独立段落"""
+        cnt = 0
+        for p in list(doc.paragraphs):
+            if "\n" in (p.text or "") or "\v" in (p.text or ""):
+                parts = re.split(r"[\n\v]+", p.text)
+                if len(parts) > 1:
+                    p.text = parts[0]
+                    for sub in parts[1:]:
+                        np = p.insert_paragraph_before(sub)
+                    cnt += len(parts) - 1
+        return cnt
+
+    def format_delete_spaces(self, doc: Document, half_only: bool = False) -> int:
+        """删除所有空白或半角空格"""
+        pattern = r" +" if half_only else r"[ \t\u3000\xa0]+"
+        cnt = 0
+        for p in doc.paragraphs:
+            for r in p.runs:
+                if r.text and re.search(pattern, r.text):
+                    r.text = re.sub(pattern, "", r.text)
+                    cnt += 1
+        return cnt
+
+    def format_delete_empty_lines(self, doc: Document) -> int:
+        """删除全文所有空行"""
+        cnt = 0
+        for p in list(doc.paragraphs):
+            has_drawing = bool(p._p.findall(".//" + qn("w:drawing")))
+            if not (p.text or "").strip() and not has_drawing:
+                p._element.getparent().remove(p._element)
+                cnt += 1
+        return cnt
+
+    def format_delete_graphics(self, doc: Document) -> int:
+        """删除文档中所有嵌入图片与图表"""
+        cnt = 0
+        for drawing in list(doc._element.findall(".//" + qn("w:drawing"))):
+            parent = drawing.getparent()
+            if parent is not None:
+                parent.remove(drawing)
+                cnt += 1
+        return cnt
+
+    def format_add_space_cn_en(self, doc: Document) -> int:
+        """在中英文字符之间添加半角空格"""
+        cnt = 0
+        for p in doc.paragraphs:
+            for r in p.runs:
+                if not r.text:
+                    continue
+                new_t = re.sub(r"([A-Za-z])([\u4e00-\u9fa5])", r"\1 \2", r.text)
+                new_t = re.sub(r"([\u4e00-\u9fa5])([A-Za-z])", r"\1 \2", new_t)
+                if new_t != r.text:
+                    r.text = new_t
+                    cnt += 1
+        return cnt
+
+    def format_punctuation_switch(self, doc: Document, en_to_cn: bool = True) -> int:
+        """标点符号英转中 / 中转英"""
+        e_arr = [",", ";", ":", "?", "!", "(", ")", "[", "]"]
+        c_arr = ["，", "；", "：", "？", "！", "（", "）", "［", "］"]
+        src, dst = (e_arr, c_arr) if en_to_cn else (c_arr, e_arr)
+        trans = str.maketrans("".join(src), "".join(dst))
+        cnt = 0
+        for p in doc.paragraphs:
+            for r in p.runs:
+                if r.text:
+                    nt = r.text.translate(trans)
+                    if en_to_cn:
+                        nt = re.sub(r"([^\d])\.([^\d])", r"\1。\2", nt)
+                    else:
+                        nt = nt.replace("。", ".").replace("“", '"').replace("”", '"').replace("‘", "'").replace("’", "'")
+                    if nt != r.text:
+                        r.text = nt
+                        cnt += 1
+        return cnt
+
+    # ---------- 公文标题、文字格式与字体更改组 ----------
+
+    def set_first_title_font(self, doc: Document, font_name: Optional[str] = None) -> bool:
+        """将首个非空标题段落设为二号指定字体居中（对应【公文标题】与【二号】下拉框）"""
+        target_font = font_name or self.cfg["font_title"]
+        for p in doc.paragraphs:
+            txt = (p.text or "").strip()
+            if txt and not re.search(r"〔\d{4}〕.*号", txt):
+                p.text = ""
+                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                set_paragraph_char_indent(p, first_line_chars=0, font_size_pt=22.0)
+                r = p.add_run(txt)
+                set_run_fonts(r, cn_font=target_font, en_font=self.cfg["font_en"], size_pt=22.0)
+                return True
+        return False
+
+    def switch_document_font(self, doc: Document, old_font: str, new_font: str) -> int:
+        """全文替换指定中文字体（如 仿宋_GB2312 => 仿宋）"""
+        cnt = 0
+        for rFonts in doc._element.findall(".//" + qn("w:rFonts")):
+            matched = False
+            for attr in ["w:eastAsia", "w:ascii", "w:hAnsi", "w:cs"]:
+                if rFonts.get(qn(attr)) == old_font:
+                    rFonts.set(qn(attr), new_font)
+                    matched = True
+            if matched:
+                cnt += 1
+        # 若段落未显式指定或需要全局覆盖，也检查各Run
+        if cnt == 0:
+            for p in doc.paragraphs:
+                for r in p.runs:
+                    rPr = r._r.get_or_add_rPr()
+                    rf = rPr.find(qn("w:rFonts"))
+                    if rf is None:
+                        rf = OxmlElement("w:rFonts")
+                        rPr.insert(0, rf)
+                    rf.set(qn("w:eastAsia"), new_font)
+                    cnt += 1
+        return cnt
+
+    def create_gw_custom_styles(self, doc: Document, force_rebuild: bool = False) -> List[str]:
+        """生成或强制重建全套公文专用样式（公文:标题 / 公文:1~4级标题 / 公文:正文 / 公文:正文(缩进)）"""
+        from docx.enum.style import WD_STYLE_TYPE
+
+        specs = [
+            ("公文:标题", self.cfg["font_title"], 22.0, WD_ALIGN_PARAGRAPH.CENTER, 0),
+            ("公文:1级标题", self.cfg["font_h1"], 16.0, WD_ALIGN_PARAGRAPH.JUSTIFY, 2),
+            ("公文:2级标题", self.cfg["font_h2"], 16.0, WD_ALIGN_PARAGRAPH.JUSTIFY, 2),
+            ("公文:3级标题", self.cfg["font_h3"], 16.0, WD_ALIGN_PARAGRAPH.JUSTIFY, 2),
+            ("公文:4级标题", self.cfg["font_h4"], 16.0, WD_ALIGN_PARAGRAPH.JUSTIFY, 2),
+            ("公文:正文", self.cfg["font_body"], 16.0, WD_ALIGN_PARAGRAPH.JUSTIFY, 0),
+            ("公文:正文(缩进)", self.cfg["font_body"], 16.0, WD_ALIGN_PARAGRAPH.JUSTIFY, 2),
+        ]
+        created = []
+        styles = doc.styles
+        for name, f_name, f_size, align, indent_chars in specs:
+            if name in styles:
+                if force_rebuild:
+                    styles[name].delete()
+                else:
+                    created.append(name)
+                    continue
+            st = styles.add_style(name, WD_STYLE_TYPE.PARAGRAPH)
+            st.font.name = self.cfg["font_en"]
+            st.font.size = Pt(f_size)
+            rPr = st.element.get_or_add_rPr()
+            rFonts = OxmlElement("w:rFonts")
+            rFonts.set(qn("w:eastAsia"), f_name)
+            rFonts.set(qn("w:ascii"), self.cfg["font_en"])
+            rPr.insert(0, rFonts)
+            st.paragraph_format.alignment = align
+            if indent_chars > 0:
+                st.paragraph_format.first_line_indent = Pt(indent_chars * f_size)
+            created.append(name)
+        return created
+
+    # ---------- 插入组：公文部件、红头、版记、横页、符号、页码 ----------
 
     def insert_red_header_single(
         self,
@@ -309,6 +519,51 @@ class GwDocumentProcessor:
         )
         set_paragraph_bottom_border(p_num, color_hex="FF0000", sz_eighths_pt=18, val="single")
 
+    def insert_red_header_multi(
+        self,
+        doc: Document,
+        agencies: Optional[List[str]] = None,
+        doc_number: Optional[str] = None,
+    ) -> None:
+        """在文档开头插入联合发文机关红头表格版头与红色反线"""
+        if not agencies:
+            agencies = ["此处输入主办单位名称", "此处输入联合发文单位名称"]
+        if doc_number is None:
+            doc_number = f"○○发〔{datetime.date.today().year}〕1号"
+
+        first_p = doc.paragraphs[0] if doc.paragraphs else doc.add_paragraph()
+        tbl = doc.add_table(rows=1, cols=2)
+        tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
+        first_p._p.addprevious(tbl._tbl)
+
+        c0 = tbl.cell(0, 0)
+        c0.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+        p0 = c0.paragraphs[0]
+        p0.alignment = WD_ALIGN_PARAGRAPH.DISTRIBUTE
+        r0 = p0.add_run("\n".join(agencies))
+        set_run_fonts(r0, cn_font=self.cfg["font_title"], en_font=self.cfg["font_en"], size_pt=26.0, color_rgb=(255, 0, 0))
+
+        c1 = tbl.cell(0, 1)
+        c1.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+        p1 = c1.paragraphs[0]
+        p1.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        r1 = p1.add_run("文件")
+        set_run_fonts(r1, cn_font=self.cfg["font_title"], en_font=self.cfg["font_en"], size_pt=44.0, color_rgb=(255, 0, 0))
+
+        p_num = first_p.insert_paragraph_before()
+        p_num.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        r_num = p_num.add_run(doc_number)
+        set_run_fonts(r_num, cn_font=self.cfg["font_body"], en_font=self.cfg["font_en"], size_pt=16.0)
+        set_paragraph_bottom_border(p_num, color_hex="FF0000", sz_eighths_pt=18, val="single")
+
+    def insert_letter_red_line(self, doc: Document, top_line: bool = True) -> None:
+        """插入信函格式上沿双红线或下沿红线"""
+        p = doc.paragraphs[0] if (top_line and doc.paragraphs) else doc.add_paragraph()
+        if top_line:
+            set_paragraph_border(p, side="top", color_hex="FF0000", sz_eighths_pt=12, val="double")
+        else:
+            set_paragraph_border(p, side="bottom", color_hex="FF0000", sz_eighths_pt=12, val="single")
+
     def insert_banji_table(
         self,
         doc: Document,
@@ -326,7 +581,6 @@ class GwDocumentProcessor:
         tbl = doc.add_table(rows=rows, cols=1)
         tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
 
-        # 设置表格边框：上下 1.0pt (sz=8)，内部横线 0.75pt (sz=6)，左右无边框
         tblPr = tbl._tbl.tblPr
         borders_xml = f"""
         <w:tblBorders {nsdecls('w')}>
@@ -358,6 +612,62 @@ class GwDocumentProcessor:
             format_cell(tbl.cell(1, 0), f"{print_org}　　　　　　　　{print_date}")
         else:
             format_cell(tbl.cell(0, 0), f"{print_org}　　　　　　　　{print_date}")
+
+    def insert_cn_date_paragraph(self, doc: Document) -> str:
+        """在文档末尾插入公文格式日期并右空4字"""
+        today = datetime.date.today()
+        d_str = f"{today.year}年{today.month}月{today.day}日"
+        p = doc.add_paragraph()
+        p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        set_paragraph_char_indent(p, first_line_chars=0, right_chars=4, font_size_pt=16.0)
+        r = p.add_run(d_str)
+        set_run_fonts(r, cn_font=self.cfg["font_body"], en_font=self.cfg["font_en"], size_pt=16.0)
+        return d_str
+
+    def insert_landscape_section(self, doc: Document) -> None:
+        """在文档中插入独立的横向 A4 分节页面并随后恢复纵向页面"""
+        sec_land = doc.add_section(WD_SECTION.NEW_PAGE)
+        sec_land.orientation = WD_ORIENT.LANDSCAPE
+        sec_land.page_width = Mm(297.0)
+        sec_land.page_height = Mm(210.0)
+        doc.add_paragraph("（此处为横向A4页面内容区域）")
+
+        sec_port = doc.add_section(WD_SECTION.NEW_PAGE)
+        sec_port.orientation = WD_ORIENT.PORTRAIT
+        sec_port.page_width = Mm(210.0)
+        sec_port.page_height = Mm(297.0)
+
+    def replace_brackets_to_hex(self, doc: Document, mode: str = "all") -> int:
+        """将年份方括号 [2026] 或黑括号 【2026】 批量替换为六角括号 〔2026〕"""
+        cnt = 0
+        for p in doc.paragraphs:
+            for r in p.runs:
+                if not r.text:
+                    continue
+                nt = r.text
+                if mode in ("all", "square"):
+                    nt = re.sub(r"[\[［](\d{1,4})[\]］]", r"〔\1〕", nt)
+                if mode in ("all", "black"):
+                    nt = re.sub(r"【(\d{1,4})】", r"〔\1〕", nt)
+                if nt != r.text:
+                    r.text = nt
+                    cnt += 1
+        return cnt
+
+    def insert_official_stamp_image(self, doc: Document, image_path: str, every_page: bool = False) -> None:
+        """插入电子公章图片（支持单处落款加盖或每页页眉批量加盖 4cm×4cm 公章）"""
+        if not os.path.isfile(image_path):
+            raise FileNotFoundError(f"未找到公章图片: {image_path}")
+        if every_page:
+            for sec in doc.sections:
+                hp = sec.header.paragraphs[0] if sec.header.paragraphs else sec.header.add_paragraph()
+                run = hp.add_run()
+                run.add_picture(image_path, width=Cm(4.0))
+        else:
+            p = doc.paragraphs[-1] if doc.paragraphs else doc.add_paragraph()
+            p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+            run = p.add_run()
+            run.add_picture(image_path, width=Cm(4.0))
 
     def insert_page_numbers(self, doc: Document, mode: str = "center") -> None:
         """
@@ -417,7 +727,6 @@ class GwDocumentProcessor:
         """
         self.apply_gb9704_page_setup(doc)
 
-        # 1. 清理空白段落与段首尾空格，规范发文字号六角括号
         valid_paras = []
         for p in list(doc.paragraphs):
             has_drawing = bool(p._p.findall(".//" + qn("w:drawing")))
@@ -448,9 +757,8 @@ class GwDocumentProcessor:
             p.paragraph_format.space_before = Pt(0)
             p.paragraph_format.space_after = Pt(0)
             p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.EXACTLY
-            p.paragraph_format.line_spacing = Pt(self.cfg["line_spacing_pt"])
+            p.paragraph_format.line_spacing = Pt(float(self.cfg["line_spacing_pt"]))
 
-            # 1) 公文主标题 (前两段内非发文字号的首段)
             if not found_main_title and idx <= 1 and not re.search(r"〔\d{4}〕.*号", txt):
                 found_main_title = True
                 stats["title"] += 1
@@ -461,7 +769,6 @@ class GwDocumentProcessor:
                 set_run_fonts(r, cn_font=self.cfg["font_title"], en_font=self.cfg["font_en"], size_pt=22.0)
                 continue
 
-            # 2) 发文字号
             if idx <= 2 and re.search(r"〔\d{4}〕.*号", txt):
                 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
                 set_paragraph_char_indent(p, first_line_chars=0, font_size_pt=16.0)
@@ -469,7 +776,6 @@ class GwDocumentProcessor:
                 set_run_fonts(r, cn_font=self.cfg["font_body"], en_font=self.cfg["font_en"], size_pt=16.0)
                 continue
 
-            # 3) 主送机关（称呼行）
             if idx <= 3 and re_salutation.match(txt) and not re_attachment.match(txt):
                 txt_norm = re.sub(r":$", "：", txt)
                 p.alignment = WD_ALIGN_PARAGRAPH.LEFT
@@ -478,7 +784,6 @@ class GwDocumentProcessor:
                 set_run_fonts(r, cn_font=self.cfg["font_body"], en_font=self.cfg["font_en"], size_pt=16.0)
                 continue
 
-            # 4) 一级标题：一、 (三号黑体，首行缩进2字符)
             if re_h1.match(txt):
                 stats["h1"] += 1
                 p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
@@ -487,7 +792,6 @@ class GwDocumentProcessor:
                 set_run_fonts(r, cn_font=self.cfg["font_h1"], en_font=self.cfg["font_en"], size_pt=16.0)
                 continue
 
-            # 5) 二级标题：（一） (三号楷体，首行缩进2字符)
             if re_h2.match(txt):
                 stats["h2"] += 1
                 txt_norm = re.sub(r"^\(([一二三四五六七八九十百]+)\)", r"（\1）", txt)
@@ -497,7 +801,6 @@ class GwDocumentProcessor:
                 set_run_fonts(r, cn_font=self.cfg["font_h2"], en_font=self.cfg["font_en"], size_pt=16.0)
                 continue
 
-            # 6) 三级标题：1． (三号仿宋，首行缩进2字符；若带句首小标题则小标题加粗)
             if re_h3.match(txt):
                 stats["h3"] += 1
                 txt_norm = re.sub(r"^(\d+)[.、]\s*", r"\1．", txt)
@@ -514,7 +817,6 @@ class GwDocumentProcessor:
                     set_run_fonts(r, cn_font=self.cfg["font_h3"], en_font=self.cfg["font_en"], size_pt=16.0, bold=True)
                 continue
 
-            # 7) 四级标题：（1） (三号仿宋，首行缩进2字符)
             if re_h4.match(txt):
                 stats["h4"] += 1
                 txt_norm = re.sub(r"^\((\d+)\)\s*", r"（\1）", txt)
@@ -524,7 +826,6 @@ class GwDocumentProcessor:
                 set_run_fonts(r, cn_font=self.cfg["font_h4"], en_font=self.cfg["font_en"], size_pt=16.0)
                 continue
 
-            # 8) 附件说明行
             if re_attachment.match(txt):
                 p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
                 set_paragraph_char_indent(p, first_line_chars=-3, left_chars=5, font_size_pt=16.0)
@@ -532,7 +833,6 @@ class GwDocumentProcessor:
                 set_run_fonts(r, cn_font=self.cfg["font_body"], en_font=self.cfg["font_en"], size_pt=16.0)
                 continue
 
-            # 9) 成文日期与发文机关署名（文档尾部）
             if re_date.match(txt) and idx >= max(1, total - 5):
                 stats["signature"] += 1
                 p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
@@ -540,7 +840,6 @@ class GwDocumentProcessor:
                 r = p.add_run(txt)
                 set_run_fonts(r, cn_font=self.cfg["font_body"], en_font=self.cfg["font_en"], size_pt=16.0)
 
-                # 对齐上一行发文机关署名
                 if idx > 0:
                     prev_p, prev_txt = valid_paras[idx - 1]
                     if 2 <= len(prev_txt) <= 22 and not re.search(r"[。；！？：]", prev_txt):
@@ -549,7 +848,6 @@ class GwDocumentProcessor:
                         set_paragraph_char_indent(prev_p, first_line_chars=0, right_chars=4.0 + diff, font_size_pt=16.0)
                 continue
 
-            # 10) 普通公文正文段落（三号仿宋，首行缩进2字符，两端对齐）
             stats["body"] += 1
             p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
             set_paragraph_char_indent(p, first_line_chars=2, font_size_pt=16.0)
@@ -560,6 +858,22 @@ class GwDocumentProcessor:
         return stats
 
     # ==================== 3. 原版 42 个 VBA 脚本的 Python 批处理实现 ====================
+
+    def script_official_signature_align(self, doc: Document) -> bool:
+        """《公文落款.vba》：智能识别文档末尾的发文机关署名与成文日期并居中对齐（日期右空4字）"""
+        non_empty = [p for p in doc.paragraphs if (p.text or "").strip()]
+        if len(non_empty) < 2:
+            return False
+        sign_p, date_p = non_empty[-2], non_empty[-1]
+        sign_txt = (sign_p.text or "").strip()
+        date_txt = (date_p.text or "").strip()
+        date_p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        set_paragraph_char_indent(date_p, first_line_chars=0, right_chars=4.0, font_size_pt=16.0)
+
+        sign_p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        diff = max(0.0, (len(date_txt) - len(sign_txt)) / 2.0)
+        set_paragraph_char_indent(sign_p, first_line_chars=0, right_chars=4.0 + diff, font_size_pt=16.0)
+        return True
 
     def script_renumber_chapters_articles(self, doc: Document) -> Tuple[int, int]:
         """《重新整理章条序号.vba》：将全文章、条各自从“第一”开始连续重排"""
@@ -808,11 +1122,9 @@ class GwDocumentProcessor:
                 if grayscale:
                     img = img.convert("L").convert("RGB")
 
-                # 轻微旋转模拟扫描仪进纸偏斜
                 angle = random.uniform(-abs(skew), abs(skew))
                 img = img.rotate(angle, resample=Image.BICUBIC, expand=False, fillcolor=(252, 251, 247))
 
-                # 叠加轻微纸张颗粒噪点
                 arr = np.array(img, dtype=np.int16)
                 if noise > 0:
                     sigma = max(1.0, noise * 80.0)

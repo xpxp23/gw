@@ -1,13 +1,13 @@
 /**
- * 小恐龙公文排版助手 (银河麒麟 V10 / 海光 3350 专版)
- * Ribbon 核心事件分发器与图标映射器 (移植自 Ribbon1.cs)
+ * 小恐龙公文排版助手 (银河麒麟 V10 / 海光 3350 专版 v2.2.0)
+ * Ribbon 核心事件分发器与图标映射器 (1:1 还原 Windows 版【公文】选项卡)
  */
 
 function OnRibbonLoad(ribbonUI) {
     if (typeof wps !== "undefined") {
         wps.ribbonUI = ribbonUI;
     }
-    console.log("小恐龙公文排版助手 (银河麒麟 / 海光3350 专版) Ribbon 加载完成");
+    console.log("小恐龙公文排版助手 (银河麒麟 / 海光3350 专版 v2.2.0) Ribbon 加载完成");
 }
 
 /**
@@ -74,10 +74,13 @@ function GetImage(control) {
         btnSpeakOption: "GroupAudioVideoRecordingOptions.png",
         btnVBA: "OfficialTemplate.png",
         mnuQuickScripts: "LogicBoldItalicAction.png",
-        mnuSelect: "ContentControlPicture.png",
+        mnuScriptMenu: "LogicBoldItalicAction.png",
+        mnuSelect: "ArrowsMore.png",
+        mnuConvert: "ContentControlPicture.png",
         btnAbout: "Info.png",
-        btnDesktopApp: "OfficialTemplate.png",
-        btnHelp: "Help.png"
+        btnDesktopApp: "GroupInsertLinks.png",
+        btnHelp: "Help.png",
+        btnEmail: "OfficeButtonFeedback.png"
     };
     var file = iconMap[id] || "OfficialTemplate.png";
     return "images/" + file;
@@ -394,7 +397,7 @@ function OnAction(control) {
         case "btnDesktopApp":
             GwConfig.callBridge("/api/launch-desktop-gui", {}, function (err) {
                 if (err) {
-                    alert("可通过桌面快捷方式【小恐龙公文排版助手(麒麟版)】或终端运行 xkl-gw-gui 启动独立批处理工具。");
+                    window.open("https://gw.xkonglong.com", "_blank");
                 }
             });
             break;
@@ -405,6 +408,9 @@ function OnAction(control) {
             } else {
                 window.open(helpUrl, "_blank", "width=760,height=560");
             }
+            break;
+        case "btnEmail":
+            alert("作者邮箱：xkonglong@qq.com\n当前版本：v2.2.0 (银河麒麟 V10 · 海光3350 信创专版)");
             break;
         default:
             console.log("未知按钮事件:", id);

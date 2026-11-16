@@ -14,18 +14,23 @@
 
 ---
 
-### 🐧 新增：银河麒麟 V10 · 海光 Hygon 3350 信创专版 (v2.1.0)
+### 🐧 银河麒麟 V10 / SP1 · 海光 Hygon 3350 信创专版 (v2.2.0)
 
-针对**银河麒麟桌面操作系统 V10 / V10 SP1**与**海光 Hygon C86 3350（x86_64 / amd64 架构）**处理器进行了深度重构与双引擎移植：
+针对**银河麒麟桌面操作系统 V10 / V10 SP1**与**海光 Hygon C86 3350（x86_64 / amd64 架构）**处理器进行了深度重构与双引擎移植，并在 v2.2.0 全面解决 WPS 插件加载与界面兼容问题：
 
 - 📂 **专版目录**：[`kylin-hygon3350/`](kylin-hygon3350/)
-- 📖 **详细技术与使用文档**：[`kylin-hygon3350/README.md`](kylin-hygon3350/README.md)
-- 📦 **预构建安装包**：`kylin-hygon3350/xkl-gw-assistant_2.1.0-kylin1_amd64.deb`
-- 🚀 **主要架构特性**：
-  1. **WPS Office Linux 原生 JS 加载项**：完整移植原版 Ribbon 功能区（7个功能组、60+交互功能、5个原生 HTML5 对话框）。
-  2. **42 个公文自动化脚本全量移植**：支持 WPS JS 原生执行及 Python 跨平台引擎，并附带 UTF-8 / GB18030 双编码脚本库。
-  3. **银河麒麟独立桌面端与 CLI 批处理**：支持无需启动 WPS 即可通过图形界面或命令行执行国标排版、双行版记、红头版头、会议桌签与扫描版 PDF 生成。
-  4. **国标字体自动映射**：内置 `setup_gb9704_fonts.sh`，自动匹配银河麒麟系统下的方正小标宋、仿宋、楷体、黑体等别名。
+- 📖 **详细技术与更新文档**：[`kylin-hygon3350/README.md`](kylin-hygon3350/README.md)
+- 📦 **预构建安装包**：`kylin-hygon3350/xkl-gw-assistant_2.2.0-kylin1_amd64.deb`
+- 🚀 **主要架构特性与 v2.2.0 升级点**：
+  1. **彻底解决 WPS 不显示【公文】选项卡**：
+     - 重写符合 WPS Linux 严格 Schema 的 `ribbon.xml`，移除不兼容的 `<menuSeparator>`。
+     - 自动向 `/opt/kingsoft/wps-office/office6/cfgs/oem.ini` 写入 `JsApiPlugin=true` 与本地插件服务器配置。
+     - 部署时立即拉起本地 38890 插件托管与系统级桥接服务。
+  2. **1:1 复刻 Windows 版功能区 + 「📌 WPS 顶部悬浮插件栏模式」**：
+     - 桌面端直接内置 1:1 还原 Windows 版完整公文图标工具栏（7 大功能分组）。
+     - 支持一键切换为置顶吸附在 WPS 顶部的悬浮插件栏，彻底无惧政企定制版 WPS 内部限制。
+  3. **42 个公文自动化脚本全量移植**：支持 WPS JS 原生执行及 Python 跨平台引擎，并附带 UTF-8 / GB18030 双编码脚本库。
+  4. **国标字体自动映射与 UI 自适应**：内置 `setup_gb9704_fonts.sh`，修复 Python 3.8 / Tk 8.6 下字号与按钮截断问题。
 
 ---
 
